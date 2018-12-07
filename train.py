@@ -285,26 +285,26 @@ print('RandomForestClassifier')
 print(rfc_train_y_acc)
 print (rfc_test_y_acc)
 
-!pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html
-!pip install fastai
+!pip install torch torchvision
 %matplotlib inline
 import matplotlib.pyplot as plt
 import numpy as np
-
+#Define the model 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
 
 batch_size = 50
 num_epochs = 200
 learning_rate = 0.01
 size_hidden= 100
+
 #Calculate some other hyperparameters based on data.  
 batch_no = len(train_X) // batch_size  #batches
 cols=train_X.shape[1] #Number of columns in input matrix
 n_output=1
-
-#Create the model
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Assume that we are on a CUDA machine, then this should print a CUDA device:
 print("Executing the model on :",device)
@@ -319,18 +319,22 @@ class Net(torch.nn.Module):
         x = self.predict(x)             # linear output
         return x
 net = Net(cols, size_hidden, n_output)
-
 #Adam is a specific flavor of gradient decent which is typically better
 optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
 #optimizer = torch.optim.SGD(net.parameters(), lr=0.2)
 criterion = torch.nn.MSELoss(size_average=False)  # this is for regression mean squared loss
+
+train_X=train_X.values
+train_y=train_y.values
+test_X=test_X.values
+test_y=test_y.values
 
 from sklearn.utils import shuffle
 from torch.autograd import Variable
 running_loss = 0.0
 for epoch in range(num_epochs):
     #Shuffle just mixes up the dataset between epocs
-    X_train, y_train = shuffle(train_X, train_y)
+    train_X, train_y = shuffle(train_X, train_y)
     # Mini batch learning
     for i in range(batch_no):
         start = i * batch_size
@@ -354,7 +358,7 @@ for epoch in range(num_epochs):
     print('Epoch {}'.format(epoch+1), "loss: ",running_loss)
     running_loss = 0.0
 
-from sklearn.metrics import r2_score
+    from sklearn.metrics import r2_score
 
 X = Variable(torch.FloatTensor(train_X)) 
 result = net(X)
@@ -362,9 +366,6 @@ pred=result.data[:,0].numpy()
 print(len(pred),len(train_y))
 r2_score(pred,train_y)
 
-import pandas as pd
-from sklearn.metrics import r2_score
-#This is a little bit tricky to get the resulting prediction.  
 def calculate_r2(x,y=[]):
     """
     This function will return the r2 if passed x and y or return predictions if just passed x. 
@@ -382,18 +383,15 @@ def calculate_r2(x,y=[]):
     else:
         print("returning predictions")
         return result
-    
+
 result1=calculate_r2(train_X,train_y)
-result2=calculate_r2(test_X,test_y)
+result2=calculate_r2(test_X,test_y)        
 
 from sklearn.linear_model import LinearRegression
 lm = LinearRegression()
 lm.fit( train_X, train_y )
 
-pytorch_train_y_acc = metrics.accuracy_score(train_y, pytorch_train_y)
-pytorch_test_y_acc = metrics.accuracy_score(test_y, pytorch_test_y)
-print(pytorch_train_y_acc)
-print (pytorch_test_y_acc)
-
 print('R2 for Train)', lm.score( train_X, train_y ))
-print('R2 for Test (cross validation)', lm.score(test_X,test_y))
+print('R2 for Test (cross validation)', lm.score(test_X, test_y))
+
+
