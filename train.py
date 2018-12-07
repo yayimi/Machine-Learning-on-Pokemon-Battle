@@ -85,7 +85,9 @@ type_dict = type_df.set_index('#').T.to_dict('list')
 print(type_dict)
 
 stats_dict = stats_df.set_index('#').T.to_dict('list')
-print(stats_dict)
+
+combats_df.Winner[combats_df.Winner == combats_df.First_pokemon] = 0
+combats_df.Winner[combats_df.Winner == combats_df.Second_pokemon] = 1
 
 def replace_things(data):
     
@@ -283,16 +285,15 @@ print('RandomForestClassifier')
 print(rfc_train_y_acc)
 print (rfc_test_y_acc)
 
+!pip install torch_nightly -f https://download.pytorch.org/whl/nightly/cu92/torch_nightly.html
+!pip install fastai
+%matplotlib inline
+import matplotlib.pyplot as plt
 import numpy as np
-train_X=train_X.values
-train_y=train_y.values
-test_X=test_X.values
-test_y=test_y.values
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 batch_size = 50
 num_epochs = 200
@@ -389,6 +390,10 @@ from sklearn.linear_model import LinearRegression
 lm = LinearRegression()
 lm.fit( train_X, train_y )
 
+pytorch_train_y_acc = metrics.accuracy_score(train_y, pytorch_train_y)
+pytorch_test_y_acc = metrics.accuracy_score(test_y, pytorch_test_y)
+print(pytorch_train_y_acc)
+print (pytorch_test_y_acc)
 
 print('R2 for Train)', lm.score( train_X, train_y ))
 print('R2 for Test (cross validation)', lm.score(test_X,test_y))
