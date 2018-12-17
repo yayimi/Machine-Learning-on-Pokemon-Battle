@@ -1,3 +1,4 @@
+#import functions
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
@@ -7,6 +8,7 @@ import argparse
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+#read data
 pokemon_df = pd.read_csv('pokemon.csv')
 combats_df = pd.read_csv('combats.csv')
 test_df = pd.read_csv('tests.csv')
@@ -19,11 +21,18 @@ pokemon_df['Type 1'] = pokemon_df['Type 1'].replace('Fighting', 'Fight')
 pokemon_df['Type 2'] = pokemon_df['Type 2'].replace('Fighting', 'Fight')
 pokemon_df['Legendary'] = pokemon_df['Legendary'].map({False: 0, True:1})
 
+#correlation table
+corr = pokemon_df.corr()
+sns.heatmap(corr, 
+        xticklabels=corr.columns,
+        yticklabels=corr.columns)
+
 #Number of legenary vs non-legendary
 sns.countplot(x='Legendary', data=pokemon_df, order=pokemon_df['Legendary'].value_counts().index)
 plt.xticks(rotation=90)
 plt.show()
 
+#Type 1 vs type 2
 sns.countplot(x='Type 1', data=pokemon_df, order=pokemon_df['Type 1'].value_counts().index)
 plt.xticks(rotation=90)
 plt.show()
@@ -34,6 +43,7 @@ plt.show()
 
 print(pokemon_df['Generation'].value_counts())
 
+#generation information 
 sns.countplot(x='Generation', data=pokemon_df, order=pokemon_df['Generation'].value_counts().index)
 plt.show()
 
@@ -41,6 +51,7 @@ plt.show()
 pokemon_df['Total_stats'] = pokemon_df['HP'] + pokemon_df['Attack'] + pokemon_df['Defense'] + pokemon_df['Sp. Atk'] + pokemon_df['Sp. Def'] + pokemon_df['Speed']
 print(pokemon_df.iloc[:, [1, -1]].head())
 
+#
 group_df = pokemon_df.drop(['#', 'Legendary'], axis=1)
 pokemon_groups = group_df.groupby('Generation')
 pokemon_groups_mean = pokemon_groups.mean()
@@ -50,6 +61,7 @@ plt.show()
 
 sns.distplot(pokemon_df['Total_stats'], hist=False, rug=True);
 
+#mean stats for each generation 
 fig, axes = plt.subplots(ncols=2, nrows=3, figsize=(15, 10))
 sns.pointplot(x=pokemon_groups_mean.index.values, y=pokemon_groups_mean['Attack'], color='red', ax=axes[0][0])
 sns.pointplot(x=pokemon_groups_mean.index.values, y=pokemon_groups_mean['Defense'], color='blue', ax=axes[0][1])
@@ -60,13 +72,18 @@ sns.pointplot(x=pokemon_groups_mean.index.values, y=pokemon_groups_mean['Sp. Def
 
 plt.show()
 
+
+#create pokemon dictionary
 name_dict = dict(zip(pokemon_df['#'], pokemon_df['Name']))
 combats_name_df = combats_df[['First_pokemon', 'Second_pokemon', 'Winner']].replace(name_dict)
 combats_name_df.head()
 combats_df.head()
 
+#calculate the first and second porkemon win rate
 first_battle = combats_name_df['First_pokemon'].value_counts()
+print（first_battle）
 second_battle = combats_name_df['Second_pokemon'].value_counts()
+print(second_battle)
 win_counts = combats_name_df['Winner'].value_counts()
 total_battle = first_battle + second_battle
 win_percentage = win_counts / total_battle
@@ -88,6 +105,11 @@ stats_dict = stats_df.set_index('#').T.to_dict('list')
 
 combats_df.Winner[combats_df.Winner == combats_df.First_pokemon] = 0
 combats_df.Winner[combats_df.Winner == combats_df.Second_pokemon] = 1
+WinnerStat = combats_df.groupby('Winner').size()
+
+WinnerStat.head()
+
+
 
 def replace_things(data):
     
@@ -121,19 +143,6 @@ print(train_df.head(5))
 #I used the predesigned groups online
 
 def calculate_effectiveness(data):
-
-    '''
-        this function creates a new column of each pokemon's effectiveness against it's enemy.
-        every effectiveness starts with 1, if an effective type is found on enemy's type, effectiveness * 2
-        if not very effective is found on enemy's type, effectiveness / 2
-        if not effective is found on enemy's type, effectiveness * 0
-        
-        This function creates 4 new columns
-            1. P1_type1, pokemon 1 first type effectiveness against the enemy's type
-            2. P1_type2, pokemon 1 second type effectiveness against the enemy's type
-            3. P2_type1, pokemon 2 first type effectiveness against the enemy's type
-            4. P2_type2, pokemon 2 second type effectiveness against the enemy's type
-    '''
     
     very_effective_dict = {'Normal': [],
                            'Fight': ['Normal', 'Rock', 'Steel', 'Ice', 'Dark'],
@@ -231,16 +240,29 @@ def calculate_effectiveness(data):
     return data
 
 train_df = calculate_effectiveness(train_df)
+train_df['Pred'] = 1
 train_df.head()
 
+
+
+from sklearn import metrics
 y_train_full = train_df['Winner']
+y_naive_train = train_df['Pred']
 x_train_full = train_df.drop('Winner', axis=1)
+x_train_full = x_train_full.drop('Pred', axis=1)
+
+#naive Model winner = 1, second pokemon wins
+naive_train_y_acc = metrics.accuracy_score(y_train_full, y_naive_train)
+print(naive_train_y_acc)
 
 from sklearn.model_selection import train_test_split
 train_X, test_X, train_y, test_y = train_test_split(x_train_full, y_train_full, train_size=0.8, test_size=0.2, random_state=100)
 
-from sklearn.neighbors import KNeighborsClassifier
+
+
+#models
 from sklearn import metrics
+from sklearn.neighbors import KNeighborsClassifier
 clf = KNeighborsClassifier()
 clf.fit(train_X, train_y) 
 knn_train_y = clf.predict(train_X)
@@ -285,10 +307,10 @@ print('RandomForestClassifier')
 print(rfc_train_y_acc)
 print (rfc_test_y_acc)
 
-!pip install torch torchvision
-%matplotlib inline
-import matplotlib.pyplot as plt
-import numpy as np
+
+
+
+#Pytorch
 #Define the model 
 import torch
 import torch.nn as nn
