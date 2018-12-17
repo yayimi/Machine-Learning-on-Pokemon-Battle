@@ -81,9 +81,9 @@ combats_df.head()
 
 #calculate the first and second porkemon win rate
 first_battle = combats_name_df['First_pokemon'].value_counts()
-print（first_battle）
+
 second_battle = combats_name_df['Second_pokemon'].value_counts()
-print(second_battle)
+
 win_counts = combats_name_df['Winner'].value_counts()
 total_battle = first_battle + second_battle
 win_percentage = win_counts / total_battle
@@ -256,41 +256,41 @@ naive_train_y_acc = metrics.accuracy_score(y_train_full, y_naive_train)
 print(naive_train_y_acc)
 
 from sklearn.model_selection import train_test_split
-train_X, test_X, train_y, test_y = train_test_split(x_train_full, y_train_full, train_size=0.8, test_size=0.2, random_state=100)
+train_X, val_X, train_y, val_y = train_test_split(x_train_full, y_train_full, train_size=0.8, test_size=0.2, random_state=100)
 
 
 
 #models
-from sklearn import metrics
+
 from sklearn.neighbors import KNeighborsClassifier
 clf = KNeighborsClassifier()
 clf.fit(train_X, train_y) 
 knn_train_y = clf.predict(train_X)
-knn_test_y = clf.predict(test_X)
+knn_val_y = clf.predict(val_X)
 knn_train_y_acc = metrics.accuracy_score(train_y, knn_train_y)
-knn_test_y_acc = metrics.accuracy_score(test_y, knn_test_y)
+knn_val_y_acc = metrics.accuracy_score(val_y, knn_val_y)
 print('knn')
 print(knn_train_y_acc)
-print (knn_test_y_acc)
+print (knn_val_y_acc)
 
 from sklearn.linear_model import LogisticRegression
 clf = LogisticRegression()
 clf.fit(train_X, train_y)
 lr_train_y = clf.predict(train_X)
-lr_test_y = clf.predict(test_X)
+lr_val_y = clf.predict(val_X)
 lr_train_y_acc = metrics.accuracy_score(train_y, lr_train_y)
-lr_test_y_acc = metrics.accuracy_score(test_y, lr_test_y)
+lr_val_y_acc = metrics.accuracy_score(val_y, lr_val_y)
 print('LogisticRegression')
 print(lr_train_y_acc)
-print (lr_test_y_acc)
+print (lr_val_y_acc)
 
 from sklearn.naive_bayes import GaussianNB
 clf = GaussianNB()
 clf.fit(train_X, train_y)
 gnb_train_y = clf.predict(train_X)
-gnb_test_y = clf.predict(test_X)
+gnb_val_y = clf.predict(test_X)
 gnb_train_y_acc = metrics.accuracy_score(train_y, lr_train_y)
-gnb_test_y_acc = metrics.accuracy_score(test_y, lr_test_y)
+gnb_val_y_acc = metrics.accuracy_score(val_y, lr_val_y)
 print('GaussianNB')
 print(gnb_train_y_acc)
 print (gnb_test_y_acc)
@@ -300,14 +300,12 @@ from sklearn.ensemble import RandomForestClassifier
 clf = RandomForestClassifier(n_estimators=100)
 clf.fit(train_X, train_y) 
 rfc_train_y = clf.predict(train_X)
-rfc_test_y = clf.predict(test_X)
+rfc_val_y = clf.predict(val_X)
 rfc_train_y_acc = metrics.accuracy_score(train_y, rfc_train_y)
-rfc_test_y_acc = metrics.accuracy_score(test_y, rfc_test_y)
+rfc_test_y_acc = metrics.accuracy_score(val_y, rfc_val_y)
 print('RandomForestClassifier')
 print(rfc_train_y_acc)
-print (rfc_test_y_acc)
-
-
+print (rfc_val_y_acc)
 
 
 #Pytorch
@@ -348,8 +346,8 @@ criterion = torch.nn.MSELoss(size_average=False)  # this is for regression mean 
 
 train_X=train_X.values
 train_y=train_y.values
-test_X=test_X.values
-test_y=test_y.values
+val_X=val_X.values
+val_y=val_y.values
 
 from sklearn.utils import shuffle
 from torch.autograd import Variable
@@ -407,13 +405,11 @@ def calculate_r2(x,y=[]):
         return result
 
 result1=calculate_r2(train_X,train_y)
-result2=calculate_r2(test_X,test_y)        
+result2=calculate_r2(val_X,val_y)        
 
 from sklearn.linear_model import LinearRegression
 lm = LinearRegression()
 lm.fit( train_X, train_y )
 
 print('R2 for Train)', lm.score( train_X, train_y ))
-print('R2 for Test (cross validation)', lm.score(test_X, test_y))
-
-
+print('R2 for Test (cross validation)', lm.score(val_X, val_y))
